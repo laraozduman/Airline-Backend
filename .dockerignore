@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.git
+.env.local
+.env.*.local
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+coverage
+*.test.ts
+*.spec.ts
