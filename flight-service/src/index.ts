@@ -51,8 +51,49 @@ app.use(express.urlencoded({ extended: true }));
 
 // Initialize and start server
 const startServer = async () => {
+  // Health check - must be defined before listening
+  app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({ 
+      service: 'flight-service',
+      status: 'running',
+      port: PORT,
+      timestamp: new Date(),
+      environment: NODE_ENV 
+    });
+  });
+
+  // Routes with API versioning
+  app.use('/v1/flights', publicLimiter, flightRoutes);
+  app.use('/v1/bookings', publicLimiter, bookingRoutes);
+  app.use('/v1/miles-smiles', publicLimiter, milesSmilesRoutes);
+  app.use('/v1/airports', publicLimiter, airportRoutes);
+  app.use('/v1/flights', publicLimiter, predictionRoutes);
+
+  // 404 handler
+  app.use((req: Request, res: Response) => {
+    res.status(404).json({ message: 'Route not found' });
+  });
+
+  // Error handling
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Internal server error', error: err.message });
+  });
+
+  // Start listening first so Cloud Run health checks pass
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 FLIGHT SERVICE running on port ${PORT} in ${NODE_ENV} mode`);
+    console.log(`📚 Endpoints:`);
+    console.log(`   Health: GET /health`);
+    console.log(`   Flights: GET /v1/flights, POST /v1/flights (admin)`);
+    console.log(`   Bookings: POST /v1/bookings, GET /v1/bookings/my-bookings`);
+    console.log(`   Miles&Smiles: GET /v1/miles-smiles/profile, POST /v1/miles-smiles/add-miles`);
+    console.log(`   Airports: GET /v1/airports, GET /v1/airports/:code`);
+    console.log(`   All endpoints require authentication via API Gateway`);
+  });
+
   try {
-    // Initialize database
+    // Initialize database after server starts
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
       console.log('✅ Database connection established');
@@ -64,69 +105,31 @@ const startServer = async () => {
 
     // Initialize RabbitMQ
     await initQueue();
+    console.log('✅ RabbitMQ connected');
 
     // Start schedulers
     startMilesUpdateScheduler();
     startWelcomeEmailScheduler();
-
-    // Health check
-    app.get('/health', (req: Request, res: Response) => {
-      res.status(200).json({ 
-        service: 'flight-service',
-        status: 'running',
-        port: PORT,
-        timestamp: new Date(),
-        environment: NODE_ENV 
-      });
-    });
-
-    // Routes with API versioning
-    app.use('/v1/flights', publicLimiter, flightRoutes);
-    app.use('/v1/bookings', publicLimiter, bookingRoutes);
-    app.use('/v1/miles-smiles', publicLimiter, milesSmilesRoutes);
-    app.use('/v1/airports', publicLimiter, airportRoutes);
-    app.use('/v1/flights', publicLimiter, predictionRoutes);
-
-    // 404 handler
-    app.use((req: Request, res: Response) => {
-      res.status(404).json({ message: 'Route not found' });
-    });
-
-    // Error handling
-    app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-      console.error(err.stack);
-      res.status(500).json({ message: 'Internal server error', error: err.message });
-    });
-
-    // Start server
-    app.listen(PORT, () => {
-      console.log(`🚀 FLIGHT SERVICE running on port ${PORT} in ${NODE_ENV} mode`);
-      console.log(`📚 Endpoints:`);
-      console.log(`   Health: GET /health`);
-      console.log(`   Flights: GET /flights, POST /flights (admin)`);
-      console.log(`   Bookings: POST /bookings, GET /bookings/my-bookings`);
-      console.log(`   Miles&Smiles: GET /miles-smiles/profile, POST /miles-smiles/add-miles`);
-      console.log(`   Airports: GET /airports, GET /airports/:code`);
-      console.log(`   Predictions: GET /flights/predict-price`);
-      console.log(`   ⚠️  All endpoints require authentication via API Gateway`);
-    });
-
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      console.log('\n🛑 Shutting down Flight Service...');
-      await closeQueue();
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', async () => {
-      console.log('\n🛑 Shutting down Flight Service...');
-      await closeQueue();
-      process.exit(0);
-    });
+    console.log('✅ Schedulers started');
   } catch (error) {
-    console.error('❌ Failed to start Flight Service:', (error as Error).message);
-    process.exit(1);
+    console.error('❌ Error during initialization:', (error as Error).message);
+    console.error('   Service will continue but some features may not work');
   }
+
+  // Graceful shutdown
+  process.on('SIGINT', async () => {
+    console.log('\n🛑 Shutting down Flight Service...');
+    server.close();
+    await closeQueue();
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', async () => {
+    console.log('\n🛑 Shutting down Flight Service...');
+    server.close();
+    await closeQueue();
+    process.exit(0);
+  });
 };
 
 startServer();

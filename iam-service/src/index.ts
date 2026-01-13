@@ -38,38 +38,41 @@ app.use('/v1/auth', authRoutes);
 
 // Start server
 const startServer = async () => {
+  // Start listening first so Cloud Run health checks pass
+  const server = app.listen(PORT, () => {
+    console.log(`   IAM SERVICE running on port ${PORT} in ${NODE_ENV} mode`);
+    console.log(`   Endpoints:`);
+    console.log(`   Health: GET /health`);
+    console.log(`   Register: POST /v1/auth/register`);
+    console.log(`   Validate Token: POST /v1/auth/validate (for Gateway)`);
+    console.log(`   Get User: GET /v1/auth/user/:firebaseUid`);
+    console.log(`   Update Role: PUT /v1/auth/user/:userId/role`);
+    console.log(`   Deactivate User: DELETE /v1/auth/user/:userId`);
+  });
+
   try {
-    // Initialize database connection
+    // Initialize database connection after server starts
     await AppDataSource.initialize();
     console.log(' Database connected successfully');
-
-    app.listen(PORT, () => {
-      console.log(`   IAM SERVICE running on port ${PORT} in ${NODE_ENV} mode`);
-      console.log(`   Endpoints:`);
-      console.log(`   Health: GET /health`);
-      console.log(`   Register: POST /auth/register`);
-      console.log(`   Validate Token: POST /auth/validate (for Gateway)`);
-      console.log(`   Get User: GET /auth/user/:firebaseUid`);
-      console.log(`   Update Role: PUT /auth/user/:userId/role`);
-      console.log(`   Deactivate User: DELETE /auth/user/:userId`);
-    });
-
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      console.log('\n   Shutting down IAM Service...');
-      await AppDataSource.destroy();
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', async () => {
-      console.log('\n   Shutting down IAM Service...');
-      await AppDataSource.destroy();
-      process.exit(0);
-    });
   } catch (error) {
-    console.error(' Failed to start IAM Service:', (error as Error).message);
-    process.exit(1);
+    console.error(' Database connection failed:', (error as Error).message);
+    console.error(' Service will continue but database operations will fail');
   }
+
+  // Graceful shutdown
+  process.on('SIGINT', async () => {
+    console.log('\n   Shutting down IAM Service...');
+    server.close();
+    await AppDataSource.destroy();
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', async () => {
+    console.log('\n   Shutting down IAM Service...');
+    server.close();
+    await AppDataSource.destroy();
+    process.exit(0);
+  });
 };
 
 startServer();

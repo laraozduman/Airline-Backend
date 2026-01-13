@@ -1,11 +1,9 @@
 import dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
-import { dirname, join } from 'path';
+import { join } from 'path';
 import { User } from '../entities/User';
 
 dotenv.config();
-
-const __dirname = dirname(process.argv[1] || '.');
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
