@@ -1,0 +1,249 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: europe-west1
+  SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+  CLOUD_SQL_INSTANCE: airline-backend:europe-west1:airline-db
+
+jobs:
+  deploy-iam-service:
+    name: Deploy IAM Service
+    runs-on: ubuntu-latest
+    container:
+      image: gcr.io/google.com/cloudsdktool/google-cloud-cli:530.0.0-slim
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y bash npm
+
+      - name: Authenticate to Google Cloud
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+          gcloud config set project ${{ env.PROJECT_ID }}
+
+      - name: Build IAM Service
+        run: |
+          cd iam-service
+          npm ci
+          cd ..
+
+      - name: Deploy IAM Service
+        run: |
+          gcloud run deploy iam-service \
+            --source ./iam-service \
+            --region ${{ env.REGION }} \
+            --service-account=${{ env.SERVICE_ACCOUNT }} \
+            --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
+            --set-secrets=/app/.env=iam-service-env:latest \
+            --allow-unauthenticated \
+            --cpu=1 \
+            --memory=512Mi \
+            --min-instances=0 \
+            --max-instances=10 \
+            --ingress=all \
+            --quiet
+
+      - name: Get IAM Service URL
+        id: iam-url
+        run: |
+          URL=$(gcloud run services describe iam-service --region=${{ env.REGION }} --format="value(status.url)")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+    outputs:
+      iam_url: ${{ steps.iam-url.outputs.url }}
+
+  deploy-ml-service:
+    name: Deploy ML Service
+    runs-on: ubuntu-latest
+    container:
+      image: gcr.io/google.com/cloudsdktool/google-cloud-cli:530.0.0-slim
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y bash npm python3 python3-pip
+
+      - name: Authenticate to Google Cloud
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+          gcloud config set project ${{ env.PROJECT_ID }}
+
+      - name: Build ML Service
+        run: |
+          cd ml-service
+          npm ci
+          cd ..
+
+      - name: Deploy ML Service
+        run: |
+          gcloud run deploy ml-service \
+            --source ./ml-service \
+            --region ${{ env.REGION }} \
+            --service-account=${{ env.SERVICE_ACCOUNT }} \
+            --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
+            --set-secrets=/app/.env=ml-service-env:latest \
+            --allow-unauthenticated \
+            --cpu=1 \
+            --memory=1Gi \
+            --min-instances=0 \
+            --max-instances=10 \
+            --ingress=all \
+            --quiet
+
+      - name: Get ML Service URL
+        id: ml-url
+        run: |
+          URL=$(gcloud run services describe ml-service --region=${{ env.REGION }} --format="value(status.url)")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+    outputs:
+      ml_url: ${{ steps.ml-url.outputs.url }}
+
+  deploy-flight-service:
+    name: Deploy Flight Service
+    runs-on: ubuntu-latest
+    container:
+      image: gcr.io/google.com/cloudsdktool/google-cloud-cli:530.0.0-slim
+    needs: [deploy-ml-service]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y bash npm
+
+      - name: Authenticate to Google Cloud
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+          gcloud config set project ${{ env.PROJECT_ID }}
+
+      - name: Build Flight Service
+        run: |
+          cd flight-service
+          npm ci
+          cd ..
+
+      - name: Deploy Flight Service
+        env:
+          ML_SERVICE_URL: ${{ needs.deploy-ml-service.outputs.ml_url }}
+        run: |
+          gcloud run deploy flight-service \
+            --source ./flight-service \
+            --region ${{ env.REGION }} \
+            --service-account=${{ env.SERVICE_ACCOUNT }} \
+            --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
+            --set-secrets=/app/.env=flight-service-env:latest \
+            --set-env-vars="ML_SERVICE_URL=$ML_SERVICE_URL" \
+            --allow-unauthenticated \
+            --cpu=1 \
+            --memory=1Gi \
+            --min-instances=0 \
+            --max-instances=20 \
+            --timeout=300 \
+            --ingress=all \
+            --quiet
+
+      - name: Get Flight Service URL
+        id: flight-url
+        run: |
+          URL=$(gcloud run services describe flight-service --region=${{ env.REGION }} --format="value(status.url)")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+    outputs:
+      flight_url: ${{ steps.flight-url.outputs.url }}
+
+  deploy-gateway:
+    name: Deploy API Gateway
+    runs-on: ubuntu-latest
+    container:
+      image: gcr.io/google.com/cloudsdktool/google-cloud-cli:530.0.0-slim
+    needs: [deploy-iam-service, deploy-flight-service, deploy-ml-service]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y bash npm
+
+      - name: Authenticate to Google Cloud
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+          gcloud config set project ${{ env.PROJECT_ID }}
+
+      - name: Build Gateway
+        run: |
+          cd gateway
+          npm ci
+          cd ..
+
+      - name: Deploy Gateway
+        env:
+          IAM_SERVICE_URL: ${{ needs.deploy-iam-service.outputs.iam_url }}
+          FLIGHT_SERVICE_URL: ${{ needs.deploy-flight-service.outputs.flight_url }}
+          ML_SERVICE_URL: ${{ needs.deploy-ml-service.outputs.ml_url }}
+        run: |
+          gcloud run deploy gateway \
+            --source ./gateway \
+            --region ${{ env.REGION }} \
+            --service-account=${{ env.SERVICE_ACCOUNT }} \
+            --set-secrets=/app/.env=gateway-env:latest \
+            --set-env-vars="IAM_SERVICE_URL=$IAM_SERVICE_URL,FLIGHT_SERVICE_URL=$FLIGHT_SERVICE_URL,ML_SERVICE_URL=$ML_SERVICE_URL" \
+            --allow-unauthenticated \
+            --cpu=1 \
+            --memory=512Mi \
+            --min-instances=1 \
+            --max-instances=20 \
+            --ingress=all \
+            --quiet
+
+      - name: Get Gateway URL
+        id: gateway-url
+        run: |
+          URL=$(gcloud run services describe gateway --region=${{ env.REGION }} --format="value(status.url)")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "🚀 Gateway deployed at: $URL"
+
+      - name: Deployment Summary
+        run: |
+          echo "## 🎉 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Service URLs:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Gateway (Public API):** ${{ steps.gateway-url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **IAM Service:** ${{ needs.deploy-iam-service.outputs.iam_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Flight Service:** ${{ needs.deploy-flight-service.outputs.flight_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **ML Service:** ${{ needs.deploy-ml-service.outputs.ml_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🧪 Test Endpoints:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "curl ${{ steps.gateway-url.outputs.url }}/health" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+    outputs:
+      gateway_url: ${{ steps.gateway-url.outputs.url }}
