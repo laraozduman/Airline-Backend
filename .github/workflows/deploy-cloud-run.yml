@@ -48,7 +48,7 @@ jobs:
             --region ${{ env.REGION }} \
             --service-account=${{ env.SERVICE_ACCOUNT }} \
             --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
-            --set-secrets=/usr/src/app/.env=iam-service-env:latest \
+            --set-secrets=/app/.env=iam-service-env:latest \
             --allow-unauthenticated \
             --cpu=1 \
             --memory=512Mi \
@@ -156,7 +156,7 @@ jobs:
             --region ${{ env.REGION }} \
             --service-account=${{ env.SERVICE_ACCOUNT }} \
             --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
-            --set-secrets=/usr/src/app/.env=flight-service-env:latest \
+            --set-secrets=/app/.env=flight-service-env:latest \
             --allow-unauthenticated \
             --cpu=1 \
             --memory=1Gi \
@@ -208,7 +208,7 @@ jobs:
             --source ./gateway \
             --region ${{ env.REGION }} \
             --service-account=${{ env.SERVICE_ACCOUNT }} \
-            --set-secrets=/usr/src/app/.env=gateway-env:latest \
+            --set-secrets=/app/.env=gateway-env:latest \
             --allow-unauthenticated \
             --cpu=1 \
             --memory=512Mi \

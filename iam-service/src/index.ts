@@ -1,12 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '/app/.env' });
+
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import 'reflect-metadata';
 import { AppDataSource } from './config/data-source';
 import authRoutes from './routes/auth';
-
-dotenv.config();
 
 const app: Express = express();
 const PORT = process.env.PORT || 8080;

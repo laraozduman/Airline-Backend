@@ -3,7 +3,6 @@ import { DataSource } from 'typeorm';
 import { join } from 'path';
 import { User } from '../entities/User';
 
-dotenv.config();
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
