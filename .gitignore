@@ -28,10 +28,3 @@ ml-service.env
 flight-service.env
 gateway.env
 
-# Old monolith structure
-src/
-
-# ML models (train during deployment)
-ml-service/models/*.pkl
-ml-service/models/*.h5
-ml-service/models/*.pb

@@ -194,11 +194,11 @@ app.use((req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 API GATEWAY running on port ${PORT}`);
-  console.log(`📡 Service Routes:`);
+  console.log(`   API GATEWAY running on port ${PORT}`);
+  console.log(`   Service Routes:`);
   console.log(`   IAM: /auth/* → ${IAM_SERVICE_URL}`);
   console.log(`   Flight: /flights/*, /bookings/*, /airports/*, /miles-smiles/* → ${FLIGHT_SERVICE_URL}`);
   console.log(`   Notification: /notifications/* → ${NOTIFICATION_SERVICE_URL}`);
   console.log(`   ML: /ml/* → ${ML_SERVICE_URL}`);
-  console.log(`   ⚠️  All routes except /auth/* require authentication`);
+  console.log(`   All routes except /auth/* require authentication`);
 });

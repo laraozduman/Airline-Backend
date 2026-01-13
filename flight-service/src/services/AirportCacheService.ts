@@ -2,7 +2,7 @@ import { redisClient } from '../config/redis';
 
 export class AirportCacheService {
   private readonly CACHE_PREFIX = 'airport:';
-  private readonly CACHE_TTL = 86400; // 24 hours in seconds
+  private readonly CACHE_TTL = 86400; 
 
   /**
    * Get airport name by code from cache
@@ -17,7 +17,7 @@ export class AirportCacheService {
       const cachedName = await redisClient.get(key);
       
       if (cachedName) {
-        console.log(`✅ Cache HIT: ${airportCode} -> ${cachedName}`);
+        console.log(`Cache HIT: ${airportCode} -> ${cachedName}`);
       }
       
       return cachedName;
@@ -38,7 +38,7 @@ export class AirportCacheService {
 
       const key = `${this.CACHE_PREFIX}${airportCode.toUpperCase()}`;
       await redisClient.setEx(key, this.CACHE_TTL, airportName);
-      console.log(`✅ Cache SET: ${airportCode} -> ${airportName}`);
+      console.log(`Cache SET: ${airportCode} -> ${airportName}`);
     } catch (error) {
       console.error('Redis set error:', error);
     }
@@ -64,7 +64,7 @@ export class AirportCacheService {
         }
       });
       
-      console.log(`✅ Cache MGET: Retrieved ${result.size}/${airportCodes.length} airports`);
+      console.log(`Cache MGET: Retrieved ${result.size}/${airportCodes.length} airports`);
     } catch (error) {
       console.error('Redis mGet error:', error);
     }
@@ -89,7 +89,7 @@ export class AirportCacheService {
       });
       
       await pipeline.exec();
-      console.log(`✅ Cache MSET: Stored ${airports.size} airports`);
+      console.log(`Cache MSET: Stored ${airports.size} airports`);
     } catch (error) {
       console.error('Redis mSet error:', error);
     }
@@ -106,7 +106,7 @@ export class AirportCacheService {
 
       const key = `${this.CACHE_PREFIX}${airportCode.toUpperCase()}`;
       await redisClient.del(key);
-      console.log(`✅ Cache DELETE: ${airportCode}`);
+      console.log(`Cache DELETE: ${airportCode}`);
     } catch (error) {
       console.error('Redis delete error:', error);
     }
@@ -124,7 +124,7 @@ export class AirportCacheService {
       const keys = await redisClient.keys(`${this.CACHE_PREFIX}*`);
       if (keys.length > 0) {
         await redisClient.del(keys);
-        console.log(`✅ Cache CLEAR: Deleted ${keys.length} airports`);
+        console.log(`Cache CLEAR: Deleted ${keys.length} airports`);
       }
     } catch (error) {
       console.error('Redis clear error:', error);
@@ -145,7 +145,7 @@ export class AirportCacheService {
     }
 
     // Cache miss - fetch from source
-    console.log(`⚠️  Cache MISS: ${airportCode} - Fetching from source...`);
+    console.log(` Cache MISS: ${airportCode} - Fetching from source...`);
     const airportName = await fetchFunction(airportCode);
     
     // Store in cache for next time

@@ -18,7 +18,7 @@ export class EmailService {
   }
 
   async sendWelcomeEmail(email: string, firstName: string, memberNumber: string): Promise<void> {
-    console.log('📧 Sending welcome email to:', email);
+    console.log('Sending welcome email to:', email);
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -51,13 +51,13 @@ export class EmailService {
     try {
       if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         await this.transporter.sendMail(mailOptions);
-        console.log('✅ Welcome email sent successfully');
+        console.log(' Welcome email sent successfully');
       } else {
-        console.log('⚠️  Email credentials not configured, skipping email send');
+        console.log('  Email credentials not configured, skipping email send');
         console.log(`   Would have sent welcome email to ${email}`);
       }
     } catch (error) {
-      console.error('❌ Failed to send welcome email:', error);
+      console.error(' Failed to send welcome email:', error);
       throw error;
     }
   }
@@ -69,7 +69,7 @@ export class EmailService {
     passengers: number,
     totalPrice: number
   ): Promise<void> {
-    console.log('📧 Sending booking confirmation to:', email);
+    console.log('Sending booking confirmation to:', email);
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -101,18 +101,18 @@ export class EmailService {
     try {
       if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         await this.transporter.sendMail(mailOptions);
-        console.log('✅ Booking confirmation email sent successfully');
+        console.log(' Booking confirmation email sent successfully');
       } else {
-        console.log('⚠️  Email credentials not configured, skipping email send');
+        console.log('  Email credentials not configured, skipping email send');
         console.log(`   Would have sent booking confirmation to ${email}`);
       }
     } catch (error) {
-      console.error('❌ Failed to send booking confirmation:', error);
+      console.error(' Failed to send booking confirmation:', error);
     }
   }
 
   async sendMilesUpdateEmail(email: string, firstName: string, milesAdded: number, newBalance: number): Promise<void> {
-    console.log('📧 Sending miles update email to:', email);
+    console.log(' Sending miles update email to:', email);
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -139,13 +139,13 @@ export class EmailService {
     try {
       if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         await this.transporter.sendMail(mailOptions);
-        console.log('✅ Miles update email sent successfully');
+        console.log(' Miles update email sent successfully');
       } else {
-        console.log('⚠️  Email credentials not configured, skipping email send');
+        console.log('  Email credentials not configured, skipping email send');
         console.log(`   Would have sent miles update to ${email}`);
       }
     } catch (error) {
-      console.error('❌ Failed to send miles update email:', error);
+      console.error(' Failed to send miles update email:', error);
     }
   }
 }
