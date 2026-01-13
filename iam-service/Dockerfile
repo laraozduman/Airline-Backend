@@ -1,11 +1,11 @@
-FROM node:20-alpine
+FROM node:18-slim
 
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --only=production
+WORKDIR /usr/src/app
 
 COPY . .
+
+RUN npm ci
+
 RUN npm run build
 
 EXPOSE 3003
