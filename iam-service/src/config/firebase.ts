@@ -4,14 +4,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Initialize Firebase Admin SDK
-const serviceAccount = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-};
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+
+if (!serviceAccountJson) {
+  throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set');
+}
+
+const serviceAccount = JSON.parse(serviceAccountJson);
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+  credential: admin.credential.cert(serviceAccount),
 });
 
 export const auth = admin.auth();
