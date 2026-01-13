@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # ========== Database ==========
+  airline-postgres:
+    image: postgres:16-alpine
+    container_name: airline-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: airline_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========== Cache ==========
+  airline-redis:
+    image: redis:7-alpine
+    container_name: airline-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========== Message Queue ==========
+  airline-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: airline-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========== ML Service ==========
+  airline-ml:
+    image: python:3.11-slim
+    container_name: airline-ml
+    working_dir: /app
+    volumes:
+      - ./ml-service:/app
+    command: python api_simple.py
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+
+  # ========== Flight Service (Port 3001) ==========
+  airline-flight:
+    build:
+      context: ./flight-service
+      dockerfile: Dockerfile
+    container_name: airline-flight
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: airline-postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: airline_db
+      REDIS_URL: redis://airline-redis:6379
+      RABBITMQ_URL: amqp://guest:guest@airline-rabbitmq:5672
+      WELCOME_QUEUE: welcome-emails
+      MILES_QUEUE: miles-updates
+      ML_SERVICE_URL: http://airline-ml:5000
+    depends_on:
+      airline-postgres:
+        condition: service_healthy
+      airline-redis:
+        condition: service_healthy
+      airline-rabbitmq:
+        condition: service_healthy
+    links:
+      - airline-postgres:postgres
+      - airline-redis:redis
+      - airline-rabbitmq:rabbitmq
+      - airline-ml:ml
+
+  # ========== Hotel Service (Port 3002) ==========
+  airline-hotel:
+    build:
+      context: ./hotel-service
+      dockerfile: Dockerfile
+    container_name: airline-hotel
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DB_HOST: airline-postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: airline_db
+      REDIS_URL: redis://airline-redis:6379
+    depends_on:
+      airline-postgres:
+        condition: service_healthy
+      airline-redis:
+        condition: service_healthy
+    links:
+      - airline-postgres:postgres
+      - airline-redis:redis
+
+  # ========== Notification Service (Port 4000) ==========
+  airline-notification:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: airline-notification
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      RABBITMQ_URL: amqp://guest:guest@airline-rabbitmq:5672
+      WELCOME_QUEUE: welcome-emails
+      MILES_QUEUE: miles-updates
+      SCHEDULER_TOKEN: changeme-scheduler
+      PARTNER_API_TOKEN: changeme-partner
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: MilesSmiles <${SMTP_USER}>
+    depends_on:
+      airline-rabbitmq:
+        condition: service_healthy
+    links:
+      - airline-rabbitmq:rabbitmq
+
+  # ========== API Gateway (Port 8080) ==========
+  airline-gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: airline-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      FLIGHT_SERVICE_URL: http://airline-flight:3001
+      HOTEL_SERVICE_URL: http://airline-hotel:3002
+      NOTIFICATION_SERVICE_URL: http://airline-notification:4000
+      ML_SERVICE_URL: http://airline-ml:5000
+    depends_on:
+      - airline-flight
+      - airline-hotel
+      - airline-notification
+      - airline-ml
+    links:
+      - airline-flight:flight
+      - airline-hotel:hotel
+      - airline-notification:notification
+      - airline-ml:ml
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  default:
+    name: airline-network
