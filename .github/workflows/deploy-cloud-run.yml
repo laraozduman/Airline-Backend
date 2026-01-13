@@ -123,7 +123,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: gcr.io/google.com/cloudsdktool/google-cloud-cli:530.0.0-slim
-    needs: [deploy-ml-service]
     
     steps:
       - name: Checkout code
@@ -147,8 +146,6 @@ jobs:
           cd ..
 
       - name: Deploy Flight Service
-        env:
-          ML_SERVICE_URL: ${{ needs.deploy-ml-service.outputs.ml_url }}
         run: |
           gcloud run deploy flight-service \
             --source ./flight-service \
@@ -156,7 +153,6 @@ jobs:
             --service-account=${{ env.SERVICE_ACCOUNT }} \
             --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
             --set-secrets=/app/.env=flight-service-env:latest \
-            --set-env-vars="ML_SERVICE_URL=$ML_SERVICE_URL" \
             --allow-unauthenticated \
             --cpu=1 \
             --memory=1Gi \
@@ -180,7 +176,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: gcr.io/google.com/cloudsdktool/google-cloud-cli:530.0.0-slim
-    needs: [deploy-iam-service, deploy-flight-service, deploy-ml-service]
     
     steps:
       - name: Checkout code
@@ -204,17 +199,12 @@ jobs:
           cd ..
 
       - name: Deploy Gateway
-        env:
-          IAM_SERVICE_URL: ${{ needs.deploy-iam-service.outputs.iam_url }}
-          FLIGHT_SERVICE_URL: ${{ needs.deploy-flight-service.outputs.flight_url }}
-          ML_SERVICE_URL: ${{ needs.deploy-ml-service.outputs.ml_url }}
         run: |
           gcloud run deploy gateway \
             --source ./gateway \
             --region ${{ env.REGION }} \
             --service-account=${{ env.SERVICE_ACCOUNT }} \
             --set-secrets=/app/.env=gateway-env:latest \
-            --set-env-vars="IAM_SERVICE_URL=$IAM_SERVICE_URL,FLIGHT_SERVICE_URL=$FLIGHT_SERVICE_URL,ML_SERVICE_URL=$ML_SERVICE_URL" \
             --allow-unauthenticated \
             --cpu=1 \
             --memory=512Mi \
