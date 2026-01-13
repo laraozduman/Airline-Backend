@@ -41,11 +41,11 @@ const startServer = async () => {
   try {
     // Initialize database connection
     await AppDataSource.initialize();
-    console.log('✅ Database connected successfully');
+    console.log(' Database connected successfully');
 
     app.listen(PORT, () => {
-      console.log(`🚀 IAM SERVICE running on port ${PORT} in ${NODE_ENV} mode`);
-      console.log(`📚 Endpoints:`);
+      console.log(`   IAM SERVICE running on port ${PORT} in ${NODE_ENV} mode`);
+      console.log(`   Endpoints:`);
       console.log(`   Health: GET /health`);
       console.log(`   Register: POST /auth/register`);
       console.log(`   Validate Token: POST /auth/validate (for Gateway)`);
@@ -56,18 +56,18 @@ const startServer = async () => {
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      console.log('\n🛑 Shutting down IAM Service...');
+      console.log('\n   Shutting down IAM Service...');
       await AppDataSource.destroy();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
-      console.log('\n🛑 Shutting down IAM Service...');
+      console.log('\n   Shutting down IAM Service...');
       await AppDataSource.destroy();
       process.exit(0);
     });
   } catch (error) {
-    console.error('❌ Failed to start IAM Service:', (error as Error).message);
+    console.error(' Failed to start IAM Service:', (error as Error).message);
     process.exit(1);
   }
 };

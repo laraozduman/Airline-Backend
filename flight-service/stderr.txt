@@ -1,0 +1,17 @@
+file:///C:/Users/larao/Airline-backend/flight-service/dist/config/data-source.js:5
+Object.defineProperty(exports, "__esModule", { value: true });
+                      ^
+
+ReferenceError: exports is not defined in ES module scope
+    at file:///C:/Users/larao/Airline-backend/flight-service/dist/config/data-source.js:5:23
+    at ModuleJobSync.runSync (node:internal/modules/esm/module_job:517:37)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:388:47)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1578:24)
+    at Module._compile (node:internal/modules/cjs/loader:1743:5)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+
+Node.js v24.12.0

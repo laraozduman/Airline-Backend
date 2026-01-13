@@ -17,7 +17,7 @@ ml-service/
 │   ├── scaler.pkl
 │   └── feature_cols.pkl
 └── data/
-    └── flight_prices.csv # Your training dataset
+    └── Clean_Dataset.csv # Training dataset
 ```
 
 ## Setup & Training
