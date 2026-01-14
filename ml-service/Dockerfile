@@ -16,4 +16,6 @@ ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 
 # Run gunicorn (Cloud Run will override PORT if needed)
-CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 300 --access-logfile - --error-logfile - app:app
+# CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 300 --access-logfile - --error-logfile - app:app
+
+CMD ["python", "app.py"]
