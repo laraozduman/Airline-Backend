@@ -14,6 +14,7 @@ router.use(authenticate);
 // User routes - get own profile and transactions
 router.get('/profile', milesSmilesController.getMyProfile);
 router.get('/transactions', milesSmilesController.getMyTransactions);
+router.get('/member/:userId', milesSmilesController.getMemberByUserId);
 
 // Admin/Partner routes - require admin access
 router.post('/add-miles', adminOnly, milesSmilesController.addMilesToAccount);

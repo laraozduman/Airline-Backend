@@ -171,6 +171,16 @@ export class AuthService {
   }
 
   /**
+   * Get user by ID
+   */
+  async getUserById(userId: string) {
+    const userRepository = AppDataSource.getRepository(User);
+    return await userRepository.findOne({
+      where: { id: userId },
+    });
+  }
+
+  /**
    * Get user by email
    */
   async getUserByEmail(email: string) {
