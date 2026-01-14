@@ -11,5 +11,9 @@ RUN python train.py
 
 EXPOSE 8080
 
-# Run with PORT provided by Cloud Run (defaults to 8080 locally)
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 300 app:app"]
+# Set environment variables for gunicorn
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
+
+# Run gunicorn (Cloud Run will override PORT if needed)
+CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 300 --access-logfile - --error-logfile - app:app
