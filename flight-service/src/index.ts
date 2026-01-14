@@ -1,10 +1,10 @@
+import 'reflect-metadata';
 import dotenv from 'dotenv';
 dotenv.config({ path: '/app/.env' });
 
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import 'reflect-metadata';
 import { AppDataSource } from './config/data-source';
 import { connectRedis } from './config/redis';
 import { initQueue, closeQueue } from './utils/queuePublisher';
