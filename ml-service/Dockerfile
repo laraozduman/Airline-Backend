@@ -11,4 +11,5 @@ RUN python train.py
 
 EXPOSE 8080
 
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--workers", "4", "--timeout", "120"]
+# Use Flask's built-in server instead of gunicorn
+CMD ["python", "app.py"]
