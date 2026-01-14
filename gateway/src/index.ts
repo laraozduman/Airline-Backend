@@ -41,7 +41,7 @@ async function validateWithIAM(req: Request, res: Response, next: NextFunction) 
     }
 
     // Call IAM service to validate token
-    const iamResponse = await fetch(`${IAM_SERVICE_URL}/auth/validate`, {
+    const iamResponse = await fetch(`${IAM_SERVICE_URL}/v1/auth/validate`, {
       method: 'POST',
       headers: {
         'Authorization': authHeader,

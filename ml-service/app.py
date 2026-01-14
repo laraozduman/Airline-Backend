@@ -26,12 +26,12 @@ MODELS_DIR = Path(__file__).parent / "models"
 
 # Load model and preprocessing objects
 try:
-    model = joblib.load(MODELS_DIR / "price_model.pkl")
-    encoders = joblib.load(MODELS_DIR / "encoders.pkl")
-    scaler = joblib.load(MODELS_DIR / "scaler.pkl")
-    feature_cols = joblib.load(MODELS_DIR / "feature_cols.pkl")
+    model = none
+    encoders = {}
+    scaler = none
+    feature_cols = []
     logger.info("✅ Model and preprocessing objects loaded successfully")
-    MODEL_LOADED = True
+    MODEL_LOADED = False
 except Exception as e:
     logger.error(f"❌ Failed to load model: {str(e)}")
     logger.error(f"Make sure to run 'python train.py' first to train the model")
@@ -240,6 +240,11 @@ def batch_predict():
 
 @app.route("/model-info", methods=["GET"])
 def model_info():
+    if not MODEL_LOADED:
+        return jsonify({
+            "status": "unavailable",
+            "message": "Model not loaded"
+        }), 503
     """Get model information and feature list"""
     return jsonify({
         "status": "success",
