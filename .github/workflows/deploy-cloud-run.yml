@@ -105,6 +105,7 @@ jobs:
             --allow-unauthenticated \
             --cpu=1 \
             --memory=1Gi \
+            --no-cache \
             --min-instances=0 \
             --max-instances=10 \
             --timeout=300 \
