@@ -1,9 +1,10 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '/app/.env' });
+
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
