@@ -8,6 +8,9 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/validate', authController.validateToken);
 
+// Protected routes (require authentication)
+router.get('/profile', authController.getMyProfile);
+
 // User management routes (should be protected by API Gateway)
 router.get('/user/:firebaseUid', authController.getUserProfile);
 router.put('/user/:userId/role', authController.updateUserRole);

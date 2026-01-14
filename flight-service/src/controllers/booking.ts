@@ -143,6 +143,23 @@ export const bookingController = {
         cashAmount,
       });
 
+      // Award miles to member if they have a membership (10% of cash amount paid)
+      let milesEarned = 0;
+      if (milesSmilesMember && cashAmount > 0) {
+        milesEarned = Math.floor(cashAmount * 0.1); // 10% of price as miles
+        if (milesEarned > 0) {
+          await milesRepo.addMiles(
+            milesSmilesMember.id,
+            milesEarned,
+            'earn',
+            `Miles earned from booking ${booking.bookingReference}`,
+            booking.id
+          );
+          // Refresh member data to get updated balance
+          milesSmilesMember = await milesRepo.getMemberById(milesSmilesMember.id);
+        }
+      }
+
       // Send booking confirmation email
       emailService.sendBookingConfirmation(
         userDetails.email,
@@ -165,6 +182,7 @@ export const bookingController = {
           paymentMethod,
           milesUsed,
           cashAmount,
+          milesEarned,
         },
         milesSmilesMember: milesSmilesMember ? {
           memberNumber: milesSmilesMember.memberNumber,

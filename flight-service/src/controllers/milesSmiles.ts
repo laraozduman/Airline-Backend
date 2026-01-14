@@ -23,6 +23,29 @@ export const milesSmilesController = {
     }
   },
 
+  // Get member by userId (for internal service calls)
+  getMemberByUserId: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = (req as any).user.userId;
+      const milesRepo = new MilesSmilesRepository(AppDataSource);
+      
+      const member = await milesRepo.getMemberByUserId(userId);
+      
+      if (!member) {
+        res.status(404).json({ message: 'Not a Miles&Smiles member' });
+        return;
+      }
+
+      res.status(200).json({ 
+        memberNumber: member.memberNumber,
+        milesBalance: Number(member.milesBalance),
+        email: member.email,
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching member', error: (error as Error).message });
+    }
+  },
+
   // Get miles transactions
   getMyTransactions: async (req: Request, res: Response): Promise<void> => {
     try {

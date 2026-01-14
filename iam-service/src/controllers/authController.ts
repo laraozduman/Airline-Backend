@@ -93,6 +93,64 @@ export const authController = {
   },
 
   /**
+   * Get current user profile with MilesSmiles data
+   * GET /auth/profile
+   */
+  getMyProfile: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = (req as any).user;
+      
+      if (!user || !user.userId) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+
+      const userProfile = await authService.getUserById(user.userId);
+
+      if (!userProfile) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+      }
+
+      // Try to fetch MilesSmiles data from flight-service
+      let smilesPoints = undefined;
+      try {
+        const flightServiceUrl = process.env.FLIGHT_SERVICE_URL || 'http://localhost:8080';
+        // Fetch the authenticated user's Miles&Smiles profile from flight-service
+        const response = await fetch(`${flightServiceUrl}/v1/miles-smiles/profile`, {
+          headers: {
+            'Authorization': req.headers.authorization || '',
+          }
+        });
+        
+        if (response.ok) {
+          const milesData = await response.json() as { milesBalance?: number };
+          smilesPoints = milesData.milesBalance || 0;
+        }
+      } catch (error) {
+        console.log('Could not fetch MilesSmiles data:', error);
+        // Continue without miles data
+      }
+
+      res.status(200).json({
+        userId: userProfile.id,
+        firebaseUid: userProfile.firebaseUid,
+        email: userProfile.email,
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
+        role: userProfile.role,
+        smilesPoints,
+      });
+    } catch (error) {
+      console.error('Get profile error:', error);
+      res.status(500).json({ 
+        message: 'Error fetching profile', 
+        error: (error as Error).message 
+      });
+    }
+  },
+
+  /**
    * Get user profile by Firebase UID
    * GET /auth/user/:firebaseUid
    */
