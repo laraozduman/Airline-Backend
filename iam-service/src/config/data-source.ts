@@ -13,7 +13,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'airline_db',
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',
-  entities: [User],
+  entities: [join(__dirname, '../entities/*.{js,ts}')],
   migrations: [join(__dirname, '../migrations/*.{ts,js}')],
   subscribers: [],
 });
