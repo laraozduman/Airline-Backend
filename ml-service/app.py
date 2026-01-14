@@ -3,6 +3,12 @@ Flight Price Prediction ML Microservice
 Serves predictions via Flask API
 Run: python app.py (development) or gunicorn app:app (production)
 """
+from dotenv import load_dotenv
+import os
+
+env_file = os.environ.get("ENV_FILE")
+if env_file:
+    load_dotenv(env_file)
 
 import os
 from flask import Flask, request, jsonify
@@ -21,6 +27,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
+print("🚀 Starting Flight Price Prediction Service...", env_file)
 # Model paths
 MODELS_DIR = Path(__file__).parent / "models"
 
