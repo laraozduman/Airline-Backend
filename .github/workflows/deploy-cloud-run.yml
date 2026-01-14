@@ -11,7 +11,7 @@ env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: europe-west1
   SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-  CLOUD_SQL_INSTANCE: airline-backend:europe-west1:airline-db
+  CLOUD_SQL_INSTANCE: airline-backend:us-central1:airline-db
 
 jobs:
   deploy-iam-service:
