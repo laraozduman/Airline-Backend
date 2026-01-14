@@ -14,8 +14,11 @@ export class AuthService {
     // Repository will be initialized lazily when needed
   }
 
-  private getUserRepository(): Repository<User> {
+  private async getUserRepository(): Promise<Repository<User>> {
     if (!this.userRepository) {
+      if (!AppDataSource.isInitialized) {
+        await AppDataSource.initialize();
+      }
       this.userRepository = AppDataSource.getRepository(User);
     }
     return this.userRepository;
@@ -26,7 +29,7 @@ export class AuthService {
    */
   async register(email: string, password: string, firstName?: string, lastName?: string, role: 'admin' | 'user' = 'user') {
     try {
-      const userRepository = this.getUserRepository();
+      const userRepository = await this.getUserRepository();
       
       // Create user in Firebase
       const firebaseUser = await auth.createUser({
@@ -84,7 +87,7 @@ export class AuthService {
    */
   async login(email: string, password: string) {
     try {
-      const userRepository = this.getUserRepository();
+      const userRepository = await this.getUserRepository();
       
       // Get user from Firebase by email
       const firebaseUser = await auth.getUserByEmail(email);
@@ -136,7 +139,7 @@ export class AuthService {
    */
   async validateToken(token: string) {
     try {
-      const userRepository = this.getUserRepository();
+      const userRepository = await this.getUserRepository();
       
       // Verify JWT token
       const decoded = jwt.verify(token, JWT_SECRET) as any;
@@ -177,7 +180,7 @@ export class AuthService {
    * Get user by Firebase UID
    */
   async getUserByFirebaseUid(firebaseUid: string) {
-    const userRepository = this.getUserRepository();
+    const userRepository = await this.getUserRepository();
     return await userRepository.findOne({
       where: { firebaseUid },
     });
@@ -187,7 +190,7 @@ export class AuthService {
    * Get user by email
    */
   async getUserByEmail(email: string) {
-    const userRepository = this.getUserRepository();
+    const userRepository = await this.getUserRepository();
     return await userRepository.findOne({
       where: { email },
     });
@@ -197,7 +200,7 @@ export class AuthService {
    * Update user role (admin operation)
    */
   async updateUserRole(userId: string, role: 'admin' | 'user') {
-    const userRepository = this.getUserRepository();
+    const userRepository = await this.getUserRepository();
     const user = await userRepository.findOne({
       where: { id: userId },
     });
@@ -216,7 +219,7 @@ export class AuthService {
    * Deactivate user account
    */
   async deactivateUser(userId: string) {
-    const userRepository = this.getUserRepository();
+    const userRepository = await this.getUserRepository();
     const user = await userRepository.findOne({
       where: { id: userId },
     });
