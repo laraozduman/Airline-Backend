@@ -8,17 +8,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 export class AuthService {
-  private userRepository: Repository<User>;
-
-  constructor() {
-    this.userRepository = AppDataSource.getRepository(User);
-  }
-
   /**
    * Register a new user with Firebase and create profile in database
    */
   async register(email: string, password: string, firstName?: string, lastName?: string, role: 'admin' | 'user' = 'user') {
     try {
+      const userRepository = AppDataSource.getRepository(User);
+      
       // Create user in Firebase
       const firebaseUser = await auth.createUser({
         email,
@@ -27,7 +23,7 @@ export class AuthService {
       });
 
       // Create user profile in database
-      const user = this.userRepository.create({
+      const user = userRepository.create({
         firebaseUid: firebaseUser.uid,
         email,
         firstName,
@@ -36,7 +32,7 @@ export class AuthService {
         isActive: true,
       });
 
-      await this.userRepository.save(user);
+      await userRepository.save(user);
 
       // Generate JWT token
       const payload = {
@@ -75,11 +71,13 @@ export class AuthService {
    */
   async login(email: string, password: string) {
     try {
+      const userRepository = AppDataSource.getRepository(User);
+      
       // Get user from Firebase by email
       const firebaseUser = await auth.getUserByEmail(email);
       
       // Get user from database
-      const user = await this.userRepository.findOne({
+      const user = await userRepository.findOne({
         where: { firebaseUid: firebaseUser.uid },
       });
 
@@ -125,11 +123,13 @@ export class AuthService {
    */
   async validateToken(token: string) {
     try {
+      const userRepository = AppDataSource.getRepository(User);
+      
       // Verify JWT token
       const decoded = jwt.verify(token, JWT_SECRET) as any;
 
       // Get user from database
-      const user = await this.userRepository.findOne({
+      const user = await userRepository.findOne({
         where: { firebaseUid: decoded.firebaseUid },
       });
 
@@ -164,7 +164,8 @@ export class AuthService {
    * Get user by Firebase UID
    */
   async getUserByFirebaseUid(firebaseUid: string) {
-    return await this.userRepository.findOne({
+    const userRepository = AppDataSource.getRepository(User);
+    return await userRepository.findOne({
       where: { firebaseUid },
     });
   }
@@ -173,7 +174,8 @@ export class AuthService {
    * Get user by email
    */
   async getUserByEmail(email: string) {
-    return await this.userRepository.findOne({
+    const userRepository = AppDataSource.getRepository(User);
+    return await userRepository.findOne({
       where: { email },
     });
   }
@@ -182,7 +184,8 @@ export class AuthService {
    * Update user role (admin operation)
    */
   async updateUserRole(userId: string, role: 'admin' | 'user') {
-    const user = await this.userRepository.findOne({
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({
       where: { id: userId },
     });
 
@@ -191,7 +194,7 @@ export class AuthService {
     }
 
     user.role = role;
-    await this.userRepository.save(user);
+    await userRepository.save(user);
 
     return user;
   }
@@ -200,7 +203,8 @@ export class AuthService {
    * Deactivate user account
    */
   async deactivateUser(userId: string) {
-    const user = await this.userRepository.findOne({
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({
       where: { id: userId },
     });
 
@@ -209,7 +213,7 @@ export class AuthService {
     }
 
     user.isActive = false;
-    await this.userRepository.save(user);
+    await userRepository.save(user);
 
     // Disable in Firebase as well
     await auth.updateUser(user.firebaseUid, {
