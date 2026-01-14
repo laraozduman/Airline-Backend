@@ -15,7 +15,7 @@ import urllib.parse
 MODEL_FILE = Path(__file__).parent / "models" / "price_model.json"
 
 if not MODEL_FILE.exists():
-    print(f"❌ Model not found. Run train_simple.py first!")
+    print(f" Model not found. Run train_simple.py first!")
     exit(1)
 
 with open(MODEL_FILE) as f:
