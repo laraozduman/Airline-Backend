@@ -1,5 +1,4 @@
 import { DataSource } from 'typeorm';
-import { Connector } from '@google-cloud/cloud-sql-connector';
 import { Flight } from '../entities/Flight';
 import { User } from '../entities/User';
 import { Booking } from '../entities/Booking';
@@ -8,7 +7,6 @@ import { MilesTransaction } from '../entities/MilesTransaction';
 import { Airport } from '../entities/Airport';
 
 // Determine if we're using Cloud SQL Connector (Cloud Run/production)
-const isProduction = process.env.NODE_ENV === 'production';
 const isCloudRun = process.env.K_SERVICE !== undefined;
 
 let AppDataSourceConfig: any = {
@@ -17,21 +15,19 @@ let AppDataSourceConfig: any = {
   migrations: [`${__dirname}/../migrations/**/*.ts`],
   subscribers: [`${__dirname}/../subscribers/**/*.ts`],
   synchronize: true,
-  logging: process.env.NODE_ENV === 'development',
+  logging: false,
 };
 
 if (isCloudRun && process.env.INSTANCE_CONNECTION_NAME) {
-  // Cloud Run: Use Cloud SQL Connector
-  const connector = new Connector();
-  
+  console.log('Using Cloud SQL Connector for database connection', process.env.INSTANCE_CONNECTION_NAME);
+  // Cloud Run: connect via Cloud SQL Unix socket
   AppDataSourceConfig = {
     ...AppDataSourceConfig,
+    host: `/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}`,
+    port: 5432,
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_NAME || 'airline_db',
-    extra: {
-      socketPath: `/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}`,
-    },
   };
 } else {
   // Local development: Direct connection
