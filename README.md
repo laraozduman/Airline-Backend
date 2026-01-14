@@ -92,32 +92,6 @@ Email: admin@airlines.com
 Password: admin123
 ```
 
-⚠️ **Important:** Change these credentials in production!
-
-## 📖 Project Structure
-
-```
-src/
-├── index.ts                    # Application entry point
-├── config/
-│   └── server.ts              # Server configuration
-├── controllers/
-│   ├── auth.ts               # Authentication logic
-│   └── flight.ts             # Flight management logic
-├── middleware/
-│   └── auth.ts               # Auth & authorization middleware
-├── models/
-│   ├── types.ts              # TypeScript interfaces
-│   ├── flight.ts             # Flight data model
-│   └── user.ts               # User data model
-└── routes/
-    ├── auth.ts               # Authentication routes
-    └── flights.ts            # Flight routes
-
-dist/                           # Compiled JavaScript (generated)
-API_DOCUMENTATION.md           # Detailed API documentation
-test-api.ts                    # API testing script
-```
 
 ## 🧪 Testing the API
 
@@ -193,7 +167,6 @@ curl -X POST https://ml-service-882344695975.europe-west1.run.app/predict \
   }'
 ```
 
-See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for detailed API documentation with examples.
 
 ## 🔑 Authentication
 
@@ -217,26 +190,22 @@ Admin endpoints require:
 
 ## 🚀 Use Cases Implemented
 
-### ✅ Phase 1: Flight Management (COMPLETED)
-- [x] Admin can add flights with date and capacity
-- [x] Admin can view all flights
-- [x] Admin can search flights by route
-- [x] Admin can update flight details
-- [x] Admin can delete flights
-- [x] Users can search and view flights
-- [x] Seat availability tracking
+###  Phase 1: Flight Management 
+-  Admin can add flights with date and capacity
+-  Admin can view all flights
+-  Admin can search flights by route
+-  Admin can update flight details
+-  Admin can delete flights
+-  Users can search and view flights
+-  Seat availability tracking
 
-### 📋 Phase 2: Booking System (Future)
-- [ ] Users can book flights
-- [ ] Users can view their bookings
-- [ ] Booking cancellation
-- [ ] Refund processing
-- [ ] Email notifications
+### 📋 Phase 2: Booking System 
+-  Users can book flights
+-  Users can view their bookings
+-  Booking cancellation
+-  Refund processing
+-  Email notifications
 
-### 📋 Phase 3: Payment Processing (Future)
-- [ ] Payment gateway integration
-- [ ] Invoice generation
-- [ ] Transaction history
 
 ## 🗄️ Data Storage
 
@@ -298,26 +267,10 @@ All API responses follow a consistent format:
 }
 ```
 
-## 🤝 Contributing
-
-1. Create a new branch for your feature
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
-
-## 📄 License
-
-ISC
-
-## 📞 Support
-
-For issues or questions, please refer to the API documentation or check the test script for usage examples.
 
 ---
 
-**Last Updated:** January 14, 2026  
 **Version:** 2.0.0 (Microservices)
-**Status:** Production Ready ✅  
 **Deployment:** Google Cloud Run (europe-west1)
 
 For detailed architecture, data models, and deployment guides, see [README_DEPLOYMENT.md](README_DEPLOYMENT.md)
