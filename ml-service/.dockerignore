@@ -8,8 +8,6 @@ venv/
 .venv
 .git
 .gitignore
-*.csv
-data/
 *.log
 .env
 .env.local

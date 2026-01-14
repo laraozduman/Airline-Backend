@@ -174,20 +174,9 @@ if __name__ == "__main__":
     csv_file = Path(__file__).parent / "data" / "Clean_Dataset.csv"
     
     if not csv_file.exists():
-        print(f"❌ Dataset not found at {csv_file}")
-        print(f"Please place your Clean_Dataset.csv in the data/ directory")
-        print(f"\nExpected columns:")
-        print("  - airline")
-        print("  - flight")
-        print("  - source_city")
-        print("  - departure_time")
-        print("  - stops")
-        print("  - arrival_time")
-        print("  - destinatin")
-        print("  - class")
-        print("  - duratin")
-        print("  - days_left")
-        print("  - price")
-        exit(1)
+        print(f"⚠️  Dataset not found at {csv_file}")
+        print(f"Skipping training - using pre-trained models from repo")
+        print(f"Make sure pre-trained models exist in models/ directory")
+        exit(0)
     
     train_model(str(csv_file))
