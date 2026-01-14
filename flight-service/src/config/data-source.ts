@@ -20,6 +20,6 @@ export const AppDataSource = new DataSource({
   entities: [Flight, User, Booking, MilesSmiles, MilesTransaction, Airport],
   migrations: [`${__dirname}/../migrations/**/*.ts`],
   subscribers: [`${__dirname}/../subscribers/**/*.ts`],
-  synchronize: process.env.NODE_ENV === 'development',
+  synchronize: true,
   logging: process.env.NODE_ENV === 'development',
 });
