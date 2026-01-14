@@ -39,6 +39,15 @@ app.use('/v1/auth', authRoutes);
 // Start server
 const startServer = async () => {
   // Start listening first so Cloud Run health checks pass
+  try {
+    // Initialize database connection after server starts
+    await AppDataSource.initialize();
+    console.log(' Database connected successfully');
+  } catch (error) {
+    console.error(' Database connection failed:', (error as Error).message);
+    console.error(' Service will continue but database operations will fail');
+  }
+
   const server = app.listen(PORT, () => {
     console.log(`   IAM SERVICE running on port ${PORT} in ${NODE_ENV} mode`);
     console.log(`   Endpoints:`);
@@ -49,15 +58,6 @@ const startServer = async () => {
     console.log(`   Update Role: PUT /v1/auth/user/:userId/role`);
     console.log(`   Deactivate User: DELETE /v1/auth/user/:userId`);
   });
-
-  try {
-    // Initialize database connection after server starts
-    await AppDataSource.initialize();
-    console.log(' Database connected successfully');
-  } catch (error) {
-    console.error(' Database connection failed:', (error as Error).message);
-    console.error(' Service will continue but database operations will fail');
-  }
 
   // Graceful shutdown
   process.on('SIGINT', async () => {
