@@ -15,8 +15,6 @@ import airportRoutes from './routes/airports';
 import predictionRoutes from './controllers/prediction';
 import { startMilesUpdateScheduler, startWelcomeEmailScheduler } from './schedulers/milesScheduler';
 
-dotenv.config();
-
 const app: Express = express();
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || 'development';

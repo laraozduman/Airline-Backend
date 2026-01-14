@@ -1,10 +1,10 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+dotenv.config({ path: '/app/.env' });
 import { createChannel, QueueConfig, WelcomeMessage, MilesMessage } from './queues';
 import { sendEmail } from './email';
 
-dotenv.config();
 
 const app = express();
 app.use(cors());

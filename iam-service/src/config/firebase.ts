@@ -1,7 +1,4 @@
 import * as admin from 'firebase-admin';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 // Initialize Firebase Admin SDK
 const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;

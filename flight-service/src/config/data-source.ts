@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+dotenv.config({ path: '/app/.env' });
 import { DataSource } from 'typeorm';
 import { Flight } from '../entities/Flight';
 import { User } from '../entities/User';
@@ -8,7 +9,6 @@ import { MilesTransaction } from '../entities/MilesTransaction';
 import { Airport } from '../entities/Airport';
 
 // Load environment variables before constructing DataSource
-dotenv.config();
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
