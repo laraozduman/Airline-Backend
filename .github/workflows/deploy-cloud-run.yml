@@ -101,11 +101,10 @@ jobs:
             --region ${{ env.REGION }} \
             --service-account=${{ env.SERVICE_ACCOUNT }} \
             --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
-            --set-secrets=/app/.env=ml-service-env:latest \
+            --set-secrets=ENV_FILE=ml-service-env:latest \
             --allow-unauthenticated \
             --cpu=1 \
             --memory=1Gi \
-            --no-cache \
             --min-instances=0 \
             --max-instances=10 \
             --timeout=300 \
